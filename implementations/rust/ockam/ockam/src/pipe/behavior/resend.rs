@@ -1,6 +1,6 @@
 use crate::{
     delay::DelayedEvent,
-    pipe::behavior::BehaviorHook,
+    pipe::behavior::{BehaviorHook, PipeModifier},
     protocols::pipe::{
         internal::{Ack, InternalCmd, Resend},
         PipeMessage,
@@ -30,7 +30,7 @@ impl BehaviorHook for SenderConfirm {
         _: Route,
         ctx: &mut Context,
         msg: &PipeMessage,
-    ) -> Result<()> {
+    ) -> Result<PipeModifier> {
         self.on_route.insert(msg.index.u64(), msg.clone());
 
         DelayedEvent::new(
@@ -44,7 +44,7 @@ impl BehaviorHook for SenderConfirm {
         .with_seconds(5)
         .spawn();
 
-        Ok(())
+        Ok(PipeModifier::None)
     }
 
     async fn on_internal(
@@ -93,7 +93,7 @@ impl BehaviorHook for ReceiverConfirm {
         sender: Route,
         ctx: &mut Context,
         msg: &PipeMessage,
-    ) -> Result<()> {
+    ) -> Result<PipeModifier> {
         debug!(
             "Sending delivery ACK for message index '{}'",
             msg.index.u64()
@@ -105,6 +105,7 @@ impl BehaviorHook for ReceiverConfirm {
             }),
         )
         .await
+        .map(|_| PipeModifier::None)
     }
 
     async fn on_internal(
