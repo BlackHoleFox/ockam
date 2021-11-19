@@ -3,6 +3,9 @@
 mod resend;
 pub use resend::{ReceiverConfirm, SenderConfirm};
 
+mod ordering;
+pub use ordering::ReceiverOrdering;
+
 use crate::protocols::pipe::{internal::InternalCmd, PipeMessage};
 use ockam_core::{async_trait, Address, Result, Route};
 use ockam_node::Context;
@@ -39,6 +42,7 @@ pub trait BehaviorHook {
 }
 
 /// Indicate to the pipe whether to modify its default behaviour
+#[derive(Clone, Copy, Debug)]
 pub enum PipeModifier {
     /// No behaviour modification required
     None,
